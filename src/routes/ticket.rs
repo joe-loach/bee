@@ -1,0 +1,150 @@
+use axum::{extract::Path, http::StatusCode, routing::{get, post}, Extension, Form, Router};
+use maud::Markup;
+use serde::Deserialize;
+
+use crate::{
+    markup::{ticket_area, ticket_card},
+    ticket::{tickets_from_defs, DefId, Ticket, TicketId},
+    user::User,
+    State,
+};
+
+pub fn router() -> Router {
+    Router::new()
+        .route("/", get(get_all_tickets).post(add_ticket))
+        .route("/{ticket}", get(get_single_ticket))
+        .route("/{ticket}/inc", post(increment_usage))
+        .route("/{ticket}/dec", post(decrement_usage))
+}
+
+async fn get_all_tickets(
+    Extension(user): Extension<Option<User>>,
+    Extension(state): Extension<State>,
+) -> Result<Markup, StatusCode> {
+    let Some(user) = user else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+
+    let defs = state.db.get_ticket_defs().await;
+    let user_tickets = state.db.get_user_tickets(user.id).await;
+
+    let tickets = tickets_from_defs(user_tickets, &defs);
+
+    Ok(ticket_area(&tickets, &defs))
+}
+
+#[axum::debug_handler]
+async fn increment_usage(
+    Path(id): Path<TicketId>,
+    Extension(user): Extension<Option<User>>,
+    Extension(state): Extension<State>,
+) -> Result<String, StatusCode> {
+    let Some(user) = user else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+    let Some(mut user_ticket) = state.db.get_ticket(id).await else {
+        return Err(StatusCode::BAD_REQUEST);
+    };
+
+    if user_ticket.user != user.id {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    if user_ticket.usages == u64::MAX {
+        // how on earth did we get here?!
+        return Ok(u64::MAX.to_string());
+    }
+
+    // increment and update
+    user_ticket.usages += 1;
+    state.db.update_ticket_usages(id, user_ticket.usages).await;
+
+    Ok(user_ticket.usages.to_string())
+}
+
+async fn decrement_usage(
+    Path(id): Path<TicketId>,
+    Extension(user): Extension<Option<User>>,
+    Extension(state): Extension<State>,
+) -> Result<String, StatusCode> {
+    let Some(user) = user else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+    let Some(mut user_ticket) = state.db.get_ticket(id).await else {
+        return Err(StatusCode::BAD_REQUEST);
+    };
+
+    if user_ticket.user != user.id {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    if user_ticket.usages == 0 {
+        // can't keep decrementing at 0
+        return Ok(0.to_string());
+    }
+
+    // decrement and update
+    user_ticket.usages -= 1;
+    state.db.update_ticket_usages(id, user_ticket.usages).await;
+
+    Ok(user_ticket.usages.to_string())
+
+}
+
+#[derive(Deserialize)]
+struct CreateTicket {
+    ticket: DefId,
+    qr: String,
+}
+
+async fn add_ticket(
+    Extension(user): Extension<Option<User>>,
+    Extension(state): Extension<State>,
+    Form(CreateTicket { ticket, qr }): Form<CreateTicket>,
+) -> Result<Markup, StatusCode> {
+    let Some(user) = user else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+
+    state.db.insert_tickets_for(user.id, ticket, qr).await;
+
+    let defs = state.db.get_ticket_defs().await;
+    let user_tickets = state.db.get_user_tickets(user.id).await;
+
+    let tickets = tickets_from_defs(user_tickets, &defs);
+
+    Ok(ticket_area(&tickets, &defs))
+}
+
+async fn get_single_ticket(
+    Path(id): Path<TicketId>,
+    Extension(user): Extension<Option<User>>,
+    Extension(state): Extension<State>,
+) -> Result<Markup, StatusCode> {
+    let Some(user) = user else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+
+    let Some(user_ticket) = state.db.get_ticket(id).await else {
+        return Err(StatusCode::BAD_REQUEST);
+    };
+
+    if user_ticket.user != user.id {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    let defs = state.db.get_ticket_defs().await;
+    let def = defs
+        .iter()
+        .find(|def| def.id == user_ticket.def)
+        .expect("definition exists");
+
+    let ticket = Ticket::combine(user_ticket, def);
+
+    // we dont know the index as we're only fetching one ticket,
+    // just give the id of the ticket instead
+    // TODO: fix this?
+    let index = ticket.id.0 as usize;
+
+    Ok(ticket_card(&ticket, index))
+}

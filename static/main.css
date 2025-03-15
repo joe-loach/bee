@@ -1,0 +1,225 @@
+* {
+  margin: 0;
+}
+
+:root {
+  --bg: rgb(44, 49, 53);
+  --bg-dark: rgb(39, 41, 44);
+  --fg: yellow;
+
+  --card-min-width: 300px;
+}
+
+
+html {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: normal;
+  font-style: normal;
+}
+
+body > header {
+  width: fit-content;
+  min-width: var(--card-min-width);
+
+  margin: auto;
+  padding: 0.5em;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+
+  gap: 2em;
+}
+
+button {
+  border: none;
+  border-radius: 0.5em;
+  display: inline-block;
+
+  padding: 0.5em;
+  margin: 4px 2px;
+
+  background-color: var(--bg);
+  color: white;
+}
+
+button:hover {
+  cursor: pointer;
+  color: var(--fg);
+  background-color: var(--bg-dark);
+}
+
+.username {
+  text-decoration: underline var(--fg);
+}
+
+#qr {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#qr svg {
+  width: 300px;
+  height: 300px;
+
+  opacity: 1;
+  animation-name: fadeInOpacity;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  animation-duration: 0.5s;
+}
+
+@keyframes fadeInOpacity {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.ticket-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2em;
+}
+
+.ticket-card {
+  max-width: 80%;
+  min-width: var(--card-min-width);
+  box-shadow: 0px 1px 4px 1px #d5d5d5;
+  border-radius: 0.5em;
+}
+
+.ticket-card header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  border-radius: 0.5em 0.5em 0 0;
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+.ticket-card header div {
+  padding: 0.5em;
+  padding-inline: 1em;
+}
+
+.ticket-card main {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-card main .top-box {
+  padding: 1em;
+}
+
+.expiry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1em;
+}
+
+.expiry p {
+  background-color: rgb(212, 249, 212);
+  font-weight: 500;
+  color: rgb(18, 78, 18);
+
+  border-radius: 0.5em;
+  padding: 0.5em;
+  text-align: center;
+  width: 80%;
+  line-height: 1em;
+}
+
+.statistics {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+.statistics > div {
+  width: 85%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.statistics button {
+  color: white;
+  background-color: var(--bg);
+  border: none;
+  border-radius: 0.5em;
+  width: 2em;
+  padding: 0.2em;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+.statistics button:hover {
+  background-color: var(--bg-dark);
+  opacity: 1.0;
+}
+
+.ticket-card .progress-bar {
+  margin: auto;
+  border-radius: 0.2em;
+  width: 85%;
+  height: 0.4em;
+  background: var(--bg);
+  animation: countdown 10s linear forwards;
+
+  animation-play-state: paused;
+  -webkit-animation-play-state: paused;
+  -moz-animation-play-state: paused;
+  -o-animation-play-state: paused;
+}
+
+@keyframes countdown {
+  from { width: 85%; }
+  to { width: 0%; }
+}
+
+input[type=text] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+}
+
+select {
+  width: 100%;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #f1f1f1;
+}
+
+input[type=submit] {
+  background-color: var(--bg);
+  font-weight: bold;
+  border: none;
+  border-radius: 0.5em;
+  color: white;
+  padding: 16px 32px;
+  text-decoration: none;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: --fg;
+}

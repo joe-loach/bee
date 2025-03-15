@@ -1,0 +1,19 @@
+name = "bee"
+main = "build/worker/shim.mjs"
+compatibility_date = "2025-03-10"
+
+[build]
+command = "cargo install -q worker-build && worker-build --release"
+
+[assets]
+directory = "./static"
+html_handling = "none"
+
+[[d1_databases]]
+binding = "database"
+database_name = "bus-db"
+database_id = "0ebff999-b158-49ab-9617-9ab22d7269bd"
+
+[[kv_namespaces]]
+binding = "sessions"
+id = "48ee4e7542c54ce99c0aa806154d35e5"
