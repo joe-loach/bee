@@ -5,7 +5,7 @@
 :root {
   --bg: rgb(44, 49, 53);
   --bg-dark: rgb(39, 41, 44);
-  --fg: yellow;
+  --fg: rgb(255, 225, 32);
 
   --card-min-width: 300px;
 }
@@ -191,6 +191,39 @@ button:hover {
 @keyframes countdown {
   from { width: 85%; }
   to { width: 0%; }
+}
+
+.moving-bee {
+  padding-top: 2em;
+  padding-bottom: 1em;
+}
+
+.bee-container {
+  container-type: size;
+  width: 100%;
+}
+
+.bee {
+  position: relative;
+  top: 50%;
+
+  background-image: url(bee.svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  width: 40px;
+  height: 40px;
+
+  animation: movebee 5s ease-in-out infinite alternate;
+}
+
+@keyframes movebee {
+  from {
+    transform: translateY(-50%) translateX(5cqw);
+  }
+
+  to {
+    transform: translateY(-50%) translateX(80cqw);
+  }
 }
 
 input[type=text] {

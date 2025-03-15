@@ -98,6 +98,13 @@ pub fn ticket_card(ticket: &Ticket, index: usize) -> Markup {
                     }
                 }
 
+                .moving-bee {
+                    hr;
+                    .bee-container  {
+                        .bee {}
+                    }
+                }
+
                 .statistics {
                     @let usages = format!("usages_{}", ticket.id);
                     @let inc_usage = format!("/tickets/{}/inc", ticket.id);
