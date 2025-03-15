@@ -4,7 +4,7 @@ pub use ticket::*;
 
 use maud::{html, Markup, DOCTYPE};
 
-use crate::user::User;
+use crate::models::user::User;
 
 pub fn root(user: Option<User>) -> Markup {
     html! {

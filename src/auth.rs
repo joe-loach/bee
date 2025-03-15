@@ -13,7 +13,10 @@ use maud::{html, Markup};
 use rand_chacha::rand_core::SeedableRng;
 use serde::Deserialize;
 
-use crate::{user::User, State};
+use crate::{
+    models::user::{self, User},
+    State,
+};
 
 pub fn router() -> Router {
     Router::new()
@@ -82,12 +85,21 @@ pub async fn login(
 
     let session_id = payload.username.clone();
 
-    let Some(user) = state.db.get_user(payload.username).await else {
+    let Some(user) = state
+        .db
+        .query_one(user::Get {
+            username: payload.username,
+        })
+        .await
+    else {
         return StatusCode::UNAUTHORIZED.into_response();
     };
 
     let hash = PasswordHash::new(&user.password_hash).unwrap();
-    if hash.verify_password(&[&Argon2::default()], &payload.password).is_err() {
+    if hash
+        .verify_password(&[&Argon2::default()], &payload.password)
+        .is_err()
+    {
         return StatusCode::UNAUTHORIZED.into_response();
     }
 
@@ -121,7 +133,10 @@ pub async fn register(
 
     state
         .db
-        .insert_user(payload.username, password_hash.serialize().to_string())
+        .query(user::Insert {
+            username: payload.username,
+            password: password_hash.serialize().to_string(),
+        })
         .await;
 
     crate::markup::root(None)

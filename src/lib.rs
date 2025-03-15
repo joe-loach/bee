@@ -3,8 +3,7 @@ mod database;
 mod markup;
 mod routes;
 mod sessions;
-mod ticket;
-mod user;
+mod models;
 
 use axum::{middleware, routing::get, Extension, Router};
 use database::{database, DatabaseConn};

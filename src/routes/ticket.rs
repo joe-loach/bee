@@ -1,11 +1,18 @@
-use axum::{extract::Path, http::StatusCode, routing::{get, post}, Extension, Form, Router};
+use axum::{
+    extract::Path,
+    http::StatusCode,
+    routing::{get, post},
+    Extension, Form, Router,
+};
 use maud::Markup;
 use serde::Deserialize;
 
 use crate::{
     markup::{ticket_area, ticket_card},
-    ticket::{tickets_from_defs, DefId, Ticket, TicketId},
-    user::User,
+    models::{
+        ticket::{self, DefId, Ticket, TicketDef, TicketId, UserTicket},
+        user::User,
+    },
     State,
 };
 
@@ -25,8 +32,8 @@ async fn get_all_tickets(
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    let defs = state.db.get_ticket_defs().await;
-    let user_tickets = state.db.get_user_tickets(user.id).await;
+    let defs = state.db.query(ticket::GetAllDefinitions).await;
+    let user_tickets = state.db.query(ticket::GetAllFromUser { id: user.id }).await;
 
     let tickets = tickets_from_defs(user_tickets, &defs);
 
@@ -42,7 +49,7 @@ async fn increment_usage(
     let Some(user) = user else {
         return Err(StatusCode::UNAUTHORIZED);
     };
-    let Some(mut user_ticket) = state.db.get_ticket(id).await else {
+    let Some(mut user_ticket) = state.db.query_one(ticket::GetTicket { id }).await else {
         return Err(StatusCode::BAD_REQUEST);
     };
 
@@ -50,14 +57,14 @@ async fn increment_usage(
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    if user_ticket.usages == u64::MAX {
+    if user_ticket.usages == u32::MAX {
         // how on earth did we get here?!
         return Ok(u64::MAX.to_string());
     }
 
     // increment and update
     user_ticket.usages += 1;
-    state.db.update_ticket_usages(id, user_ticket.usages).await;
+    state.db.run(ticket::UpdateUsage { id, usages: user_ticket.usages }).await;
 
     Ok(user_ticket.usages.to_string())
 }
@@ -70,7 +77,7 @@ async fn decrement_usage(
     let Some(user) = user else {
         return Err(StatusCode::UNAUTHORIZED);
     };
-    let Some(mut user_ticket) = state.db.get_ticket(id).await else {
+    let Some(mut user_ticket) = state.db.query_one(ticket::GetTicket { id }).await else {
         return Err(StatusCode::BAD_REQUEST);
     };
 
@@ -85,10 +92,9 @@ async fn decrement_usage(
 
     // decrement and update
     user_ticket.usages -= 1;
-    state.db.update_ticket_usages(id, user_ticket.usages).await;
+    state.db.run(ticket::UpdateUsage { id, usages: user_ticket.usages }).await;
 
     Ok(user_ticket.usages.to_string())
-
 }
 
 #[derive(Deserialize)]
@@ -106,10 +112,10 @@ async fn add_ticket(
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    state.db.insert_tickets_for(user.id, ticket, qr).await;
+    state.db.run(ticket::Insert { user: user.id, def: ticket, qr }).await;
 
-    let defs = state.db.get_ticket_defs().await;
-    let user_tickets = state.db.get_user_tickets(user.id).await;
+    let defs = state.db.query(ticket::GetAllDefinitions).await;
+    let user_tickets = state.db.query(ticket::GetAllFromUser { id: user.id }).await;
 
     let tickets = tickets_from_defs(user_tickets, &defs);
 
@@ -125,7 +131,7 @@ async fn get_single_ticket(
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    let Some(user_ticket) = state.db.get_ticket(id).await else {
+    let Some(user_ticket) = state.db.query_one(ticket::GetTicket { id }).await else {
         return Err(StatusCode::BAD_REQUEST);
     };
 
@@ -133,7 +139,7 @@ async fn get_single_ticket(
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    let defs = state.db.get_ticket_defs().await;
+    let defs = state.db.query(ticket::GetAllDefinitions).await;
     let def = defs
         .iter()
         .find(|def| def.id == user_ticket.def)
@@ -147,4 +153,20 @@ async fn get_single_ticket(
     let index = ticket.id.0 as usize;
 
     Ok(ticket_card(&ticket, index))
+}
+
+fn tickets_from_defs(
+    user_tickets: impl IntoIterator<Item = UserTicket>,
+    defs: &[TicketDef],
+) -> Vec<Ticket> {
+    user_tickets
+        .into_iter()
+        .map(|ut| {
+            let ut_def = defs
+                .iter()
+                .find(|def| def.id == ut.def)
+                .expect("definition should exist");
+            Ticket::combine(ut, ut_def)
+        })
+        .collect::<Vec<_>>()
 }

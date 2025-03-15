@@ -1,6 +1,6 @@
 use maud::{html, Markup};
 
-use crate::ticket::{Ticket, TicketDef};
+use crate::models::ticket::{Ticket, TicketDef};
 
 pub fn ticket_area(owned_tickets: &[Ticket], defs: &[TicketDef]) -> Markup {
     html! {
