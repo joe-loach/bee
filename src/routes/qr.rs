@@ -1,5 +1,9 @@
 use axum::{
-    extract::Query, http::{header, StatusCode}, response::{IntoResponse, Response}, routing::get, Extension, Router
+    extract::Query,
+    http::{header, StatusCode},
+    response::{IntoResponse, Response},
+    routing::get,
+    Extension, Router,
 };
 use fast_qr::{
     convert::{svg::SvgBuilder, Builder, Shape},
@@ -7,11 +11,16 @@ use fast_qr::{
 };
 use serde::Deserialize;
 
-use crate::{ticket::TicketId, user::User, State};
+use crate::{
+    models::{
+        ticket::{self, TicketId},
+        user::User,
+    },
+    State,
+};
 
 pub fn router() -> Router {
-    Router::new()
-    .route("/", get(get_qr_svg))
+    Router::new().route("/", get(get_qr_svg))
 }
 
 #[derive(Deserialize)]
@@ -29,7 +38,7 @@ async fn get_qr_svg(
         return StatusCode::UNAUTHORIZED.into_response();
     };
 
-    let Some(ticket) = state.db.get_ticket(ticket).await else {
+    let Some(ticket) = state.db.query_one(ticket::GetTicket { id: ticket }).await else {
         return StatusCode::BAD_REQUEST.into_response();
     };
 
