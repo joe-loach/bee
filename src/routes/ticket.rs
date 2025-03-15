@@ -57,7 +57,7 @@ async fn increment_usage(
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    if user_ticket.usages == u64::MAX {
+    if user_ticket.usages == u32::MAX {
         // how on earth did we get here?!
         return Ok(u64::MAX.to_string());
     }

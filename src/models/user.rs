@@ -4,7 +4,13 @@ use crate::database;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct UserId(pub u64);
+pub struct UserId(pub u32);
+
+impl From<UserId> for database::Binding {
+    fn from(val: UserId) -> Self {
+        database::Binding::from(val.0)
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct User {

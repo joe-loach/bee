@@ -1,7 +1,21 @@
-pub use js_sys::wasm_bindgen::JsValue as Binding;
 use js_sys::wasm_bindgen::JsValue;
 use worker::{wasm_bindgen_futures::spawn_local, D1PreparedStatement};
 use worker::{D1Database, Env};
+
+#[repr(transparent)]
+pub struct Binding(JsValue);
+
+impl From<&str> for Binding {
+    fn from(value: &str) -> Self {
+        Binding(value.into())
+    }
+}
+
+impl From<u32> for Binding {
+    fn from(value: u32) -> Self {
+        Binding(value.into())
+    }
+}
 
 pub trait Query {
     type Result: for<'de> serde::Deserialize<'de>;
@@ -57,7 +71,13 @@ where
 {
     #[inline(always)]
     fn statement(&self, db: &D1Database) -> worker::Result<D1PreparedStatement> {
-        db.prepare(self.query()).bind(&self.bindings())
+        db.prepare(self.query()).bind(
+            &self
+                .bindings()
+                .into_iter()
+                .map(|Binding(value)| value)
+                .collect::<Vec<_>>(),
+        )
     }
 }
 

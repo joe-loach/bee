@@ -5,11 +5,23 @@ use crate::{database, models::user::UserId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct DefId(pub u64);
+pub struct DefId(pub u32);
+
+impl From<DefId> for database::Binding {
+    fn from(val: DefId) -> Self {
+        database::Binding::from(val.0)
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct TicketId(pub u64);
+pub struct TicketId(pub u32);
+
+impl From<TicketId> for database::Binding {
+    fn from(val: TicketId) -> Self {
+        database::Binding::from(val.0)
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TicketDef {
@@ -26,7 +38,7 @@ pub struct UserTicket {
     pub def: DefId,
     pub user: UserId,
     pub qr: String,
-    pub usages: u64,
+    pub usages: u32,
 }
 
 #[allow(unused)]
@@ -38,7 +50,7 @@ pub struct Ticket {
     pub start: UtcDateTime,
     pub expiry: UtcDateTime,
     pub qr: String,
-    pub usages: u64,
+    pub usages: u32,
 }
 
 impl Ticket {
@@ -85,7 +97,7 @@ impl database::Query for GetTicket {
     }
 
     fn bindings(&self) -> Vec<database::Binding> {
-        vec![(self.id.0 as f64).into()]
+        vec![self.id.into()]
     }
 }
 
@@ -101,13 +113,13 @@ impl database::Query for GetAllFromUser {
     }
 
     fn bindings(&self) -> Vec<database::Binding> {
-        vec![(self.id.0 as f64).into()]
+        vec![self.id.into()]
     }
 }
 
 pub struct UpdateUsage {
     pub id: TicketId,
-    pub usages: u64,
+    pub usages: u32,
 }
 
 impl database::Query for UpdateUsage {
@@ -117,8 +129,8 @@ impl database::Query for UpdateUsage {
         "UPDATE user_tickets SET usages = ?1 WHERE id = ?2"
     }
 
-    fn bindings(&self) -> Vec<js_sys::wasm_bindgen::JsValue> {
-        vec![(self.usages as f64).into(), (self.id.0 as f64).into()]
+    fn bindings(&self) -> Vec<database::Binding> {
+        vec![self.usages.into(), self.id.into()]
     }
 }
 
@@ -135,10 +147,10 @@ impl database::Query for Insert {
         "INSERT INTO user_tickets (user, def, qr) VALUES (?1, ?2, ?3)"
     }
 
-    fn bindings(&self) -> Vec<js_sys::wasm_bindgen::JsValue> {
+    fn bindings(&self) -> Vec<database::Binding> {
         vec![
-            (self.user.0 as f64).into(),
-            (self.def.0 as f64).into(),
+            self.user.into(),
+            self.def.into(),
             self.qr.as_str().into(),
         ]
     }
@@ -153,7 +165,7 @@ impl database::Query for GetAllDefinitions {
         "SELECT * FROM ticket_defs"
     }
 
-    fn bindings(&self) -> Vec<js_sys::wasm_bindgen::JsValue> {
+    fn bindings(&self) -> Vec<database::Binding> {
         vec![]
     }
 }
