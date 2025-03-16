@@ -46,7 +46,8 @@ function show_for_time(qr_id, timer_id, inc_id) {
 
     // remove qr code svg
     const qr = document.getElementById(qr_id);
-    qr.firstChild.remove();
+    if (qr.firstChild != null)
+      qr.firstChild.remove();
     // increment counter
     htmx.trigger(`#${inc_id}`, "increment", {});
   }, TIME_TO_RESET);
