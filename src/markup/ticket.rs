@@ -79,7 +79,7 @@ pub fn ticket_card(ticket: &Ticket, index: usize) -> Markup {
                     h3 { (ticket.title) }
                     small { "Bee Network Bus" }
                 }
-                #(qr) hx-on::after-settle=(save) {}
+                .qr #(qr) hx-on::after-settle=(save) {}
                 div {
                     #(timer) .progress-bar {}
                 }
