@@ -1,14 +1,11 @@
 use axum::{
-    extract::Path,
-    http::StatusCode,
-    routing::{get, post},
-    Extension, Form, Router,
+    extract::Path, http::StatusCode, response::Redirect, routing::{get, post}, Extension, Form, Router
 };
 use maud::Markup;
 use serde::Deserialize;
 
 use crate::{
-    markup::{ticket_area, ticket_card},
+    markup::{self, ticket_area, ticket_card},
     models::{
         ticket::{self, DefId, Ticket, TicketDef, TicketId, UserTicket},
         user::User,
@@ -18,10 +15,27 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", get(get_all_tickets).post(add_ticket))
+        .route("/", get(get_all_tickets))
+        .route("/add", get(ticket_form).post(add_ticket))
         .route("/{ticket}", get(get_single_ticket))
         .route("/{ticket}/inc", post(increment_usage))
         .route("/{ticket}/dec", post(decrement_usage))
+}
+
+async fn ticket_form(
+    Extension(user): Extension<Option<User>>,
+    Extension(state): Extension<State>,
+) -> Result<Markup, StatusCode> {
+    let Some(user) = user else {
+        return Err(StatusCode::UNAUTHORIZED);
+    };
+
+    let defs = state.db.query(ticket::GetAllDefinitions).await;
+    let user_tickets = state.db.query(ticket::GetAllFromUser { id: user.id }).await;
+
+    let tickets = tickets_from_defs(user_tickets, &defs);
+
+    markup::ticket_form(&tickets, &defs).ok_or(StatusCode::NO_CONTENT)
 }
 
 async fn get_all_tickets(
@@ -37,7 +51,7 @@ async fn get_all_tickets(
 
     let tickets = tickets_from_defs(user_tickets, &defs);
 
-    Ok(ticket_area(&tickets, &defs))
+    Ok(ticket_area(&tickets))
 }
 
 #[axum::debug_handler]
@@ -64,7 +78,13 @@ async fn increment_usage(
 
     // increment and update
     user_ticket.usages += 1;
-    state.db.run(ticket::UpdateUsage { id, usages: user_ticket.usages }).await;
+    state
+        .db
+        .run(ticket::UpdateUsage {
+            id,
+            usages: user_ticket.usages,
+        })
+        .await;
 
     Ok(user_ticket.usages.to_string())
 }
@@ -92,7 +112,13 @@ async fn decrement_usage(
 
     // decrement and update
     user_ticket.usages -= 1;
-    state.db.run(ticket::UpdateUsage { id, usages: user_ticket.usages }).await;
+    state
+        .db
+        .run(ticket::UpdateUsage {
+            id,
+            usages: user_ticket.usages,
+        })
+        .await;
 
     Ok(user_ticket.usages.to_string())
 }
@@ -107,19 +133,21 @@ async fn add_ticket(
     Extension(user): Extension<Option<User>>,
     Extension(state): Extension<State>,
     Form(CreateTicket { ticket, qr }): Form<CreateTicket>,
-) -> Result<Markup, StatusCode> {
+) -> Result<Redirect, StatusCode> {
     let Some(user) = user else {
         return Err(StatusCode::UNAUTHORIZED);
     };
 
-    state.db.run(ticket::Insert { user: user.id, def: ticket, qr }).await;
+    state
+        .db
+        .run(ticket::Insert {
+            user: user.id,
+            def: ticket,
+            qr,
+        })
+        .await;
 
-    let defs = state.db.query(ticket::GetAllDefinitions).await;
-    let user_tickets = state.db.query(ticket::GetAllFromUser { id: user.id }).await;
-
-    let tickets = tickets_from_defs(user_tickets, &defs);
-
-    Ok(ticket_area(&tickets, &defs))
+    Ok(Redirect::to("/"))
 }
 
 async fn get_single_ticket(

@@ -8,7 +8,8 @@ use crate::models::user::User;
 
 pub fn root(user: Option<User>) -> Markup {
     html! {
-        (header(user.as_ref()))
+        (head())
+        (user_header(user.as_ref()))
         #main-content {
             @if user.is_some() {
                 #tickets hx-get="/tickets" hx-trigger="load" { "Loading..." }
@@ -17,7 +18,7 @@ pub fn root(user: Option<User>) -> Markup {
     }
 }
 
-pub fn header(user: Option<&User>) -> Markup {
+pub fn head() -> Markup {
     html! {
         (DOCTYPE)
         head {
@@ -36,7 +37,6 @@ pub fn header(user: Option<&User>) -> Markup {
             script src="https://unpkg.com/htmx.org@2.0.4" {};
             script src="helpers.js" {};
         }
-        (user_header(user))
     }
 }
 
@@ -52,6 +52,7 @@ pub fn user_header(user: Option<&User>) -> Markup {
                 }
 
                 div {
+                    button hx-get="/tickets/add" hx-target="body" { "Add Ticket" }
                     button hx-get="/auth/logout" hx-target="body" { "Logout" }
                 }
             }

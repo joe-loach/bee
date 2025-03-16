@@ -2,7 +2,7 @@ use maud::{html, Markup};
 
 use crate::models::ticket::{Ticket, TicketDef};
 
-pub fn ticket_area(owned_tickets: &[Ticket], defs: &[TicketDef]) -> Markup {
+pub fn ticket_area(owned_tickets: &[Ticket]) -> Markup {
     html! {
         {
             .ticket-area {
@@ -11,22 +11,17 @@ pub fn ticket_area(owned_tickets: &[Ticket], defs: &[TicketDef]) -> Markup {
                 }
             }
         }
-
-        @if let Some(form) = ticket_form(owned_tickets, defs) {
-            hr;
-            (form)
-        }
     }
 }
 
-fn ticket_form(owned_tickets: &[Ticket], defs: &[TicketDef]) -> Option<Markup> {
+pub fn ticket_form(owned_tickets: &[Ticket], defs: &[TicketDef]) -> Option<Markup> {
     let unclaimed_ticket_defs = defs
         .iter()
         .filter(|t| !owned_tickets.iter().any(|ot| ot.def == t.id))
         .collect::<Vec<_>>();
     if !unclaimed_ticket_defs.is_empty() {
         Some(html! {
-            form hx-post="/tickets" hx-target="#tickets" {
+            form hx-post="/tickets/add" hx-target="body" {
                 label for="ticket" {"Ticket: "}
                 select id="ticket" name="ticket" {
                     @for def in unclaimed_ticket_defs {
