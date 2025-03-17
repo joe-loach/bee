@@ -1,11 +1,15 @@
 use axum::{
-    extract::Path, http::StatusCode, response::Redirect, routing::{get, post}, Extension, Form, Router
+    extract::Path,
+    http::StatusCode,
+    response::Redirect,
+    routing::{get, post},
+    Extension, Form, Router,
 };
 use maud::Markup;
 use serde::Deserialize;
 
 use crate::{
-    markup::{self, ticket_area, ticket_card},
+    markup,
     models::{
         ticket::{self, DefId, Ticket, TicketDef, TicketId, UserTicket},
         user::User,
@@ -15,7 +19,7 @@ use crate::{
 
 pub fn router() -> Router {
     Router::new()
-        .route("/", get(get_all_tickets))
+        .route("/", get(get_ticket_area))
         .route("/add", get(ticket_form).post(add_ticket))
         .route("/{ticket}", get(get_single_ticket))
         .route("/{ticket}/inc", post(increment_usage))
@@ -38,7 +42,7 @@ async fn ticket_form(
     markup::ticket_form(&tickets, &defs).ok_or(StatusCode::NO_CONTENT)
 }
 
-async fn get_all_tickets(
+async fn get_ticket_area(
     Extension(user): Extension<Option<User>>,
     Extension(state): Extension<State>,
 ) -> Result<Markup, StatusCode> {
@@ -51,7 +55,7 @@ async fn get_all_tickets(
 
     let tickets = tickets_from_defs(user_tickets, &defs);
 
-    Ok(ticket_area(&tickets))
+    Ok(markup::ticket_area(&tickets))
 }
 
 #[axum::debug_handler]
@@ -175,12 +179,9 @@ async fn get_single_ticket(
 
     let ticket = Ticket::combine(user_ticket, def);
 
-    // we dont know the index as we're only fetching one ticket,
-    // just give the id of the ticket instead
-    // TODO: fix this?
-    let index = ticket.id.0 as usize;
-
-    Ok(ticket_card(&ticket, index))
+    Ok(markup::ticket_card(markup::TicketMarkup::Large {
+        ticket: &ticket,
+    }))
 }
 
 fn tickets_from_defs(

@@ -3,19 +3,42 @@
 }
 
 :root {
-  --bg: rgb(44, 49, 53);
-  --bg-dark: rgb(39, 41, 44);
-  --fg: rgb(255, 225, 32);
+  --bg: #f8f8f8;
+  --bg-light: #fefefe;
+  --accent: rgb(44, 49, 53);
+  --accent-dark: rgb(39, 41, 44);
+  --primary: rgb(255, 225, 32);
 
-  --card-min-width: 300px;
+  --text-color: black;
+  --text-color-alt: rgb(70, 70, 70);
+
+  --hr-color: rgb(230, 230, 230);
+
+  --card-min-width: 360px;
 }
-
 
 html {
   font-family: "Inter", sans-serif;
   font-optical-sizing: auto;
   font-weight: normal;
   font-style: normal;
+}
+
+body {
+  overflow-x: hidden;
+  background-color: var(--bg);
+}
+
+p {
+  color: var(--text-color);
+}
+
+small.sub {
+  color: var(--text-color-alt);
+}
+
+hr {
+  color: var(--hr-color);
 }
 
 body > header {
@@ -29,7 +52,6 @@ body > header {
   flex-direction: row;
   justify-content: space-between;
   align-items: baseline;
-
   gap: 2em;
 }
 
@@ -41,30 +63,114 @@ button {
   padding: 0.5em;
   margin: 4px 2px;
 
-  background-color: var(--bg);
+  background-color: var(--accent);
   color: white;
 }
 
 button:hover {
   cursor: pointer;
-  color: var(--fg);
-  background-color: var(--bg-dark);
+  color: var(--primary);
+  background-color: var(--accent-dark);
 }
 
 .username {
-  text-decoration: underline var(--fg);
+  text-decoration: underline var(--primary);
 }
 
-.qr {
-  margin-top: 0.1em;
-  margin-bottom: 0.1em;
+div#ticket-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2em;
+}
+
+.large-ticket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  max-width: 100vw;
+}
+
+.large-ticket > header {
+  position: relative;
+
+  display: grid;
+  place-items: center;
+
+  width: 100%;
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
+  padding-left: 0;
+  padding-right: 0;
+  margin: 0;
+  box-sizing: border-box;
+
+  border-radius: 0.5em 0.5em 0 0;
+  background-color: white;
+}
+
+.large-ticket > header button.close-button {
+  position: absolute;
+  right: 1em;
+  background-color: white;
+  color: var(--text-color);
+}
+
+.large-ticket > header button.close-button:hover {
+  background-color: rgb(236, 236, 236);
+  color: var(--text-color);
+}
+
+.large-ticket > .ticket-card {
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.ticket-card {
+  max-width: 80%;
+  min-width: var(--card-min-width);
+
+  box-shadow: 0px 1px 4px 1px #d5d5d5;
+  border-radius: 0.5em;
+  background-color: var(--bg-light);
+}
+
+.ticket-card > header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  border-radius: 0.5em 0.5em 0 0;
+  background-color: var(--accent);
+  color: var(--primary);
+}
+
+.ticket-card > header > div {
+  padding: 0.75em;
+}
+
+.ticket-card > main {
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-card > main > div {
+  margin-top: 1em;
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.ticket-card > main > div#qr {
+  padding-top: 2em;
+  padding-bottom: 2em;
   margin-left: auto;
   margin-right: auto;
 }
 
-.qr svg {
-  width: 160px;
-  height: 160px;
+#qr svg {
+  width: 200px;
+  height: 200px;
 
   opacity: 1;
   animation-name: fadeInOpacity;
@@ -82,96 +188,41 @@ button:hover {
   }
 }
 
-.ticket-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2em;
-}
-
-.ticket-card {
-  max-width: 80%;
-  min-width: var(--card-min-width);
-  box-shadow: 0px 1px 4px 1px #d5d5d5;
-  border-radius: 0.5em;
-}
-
-.ticket-card header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-
-  border-radius: 0.5em 0.5em 0 0;
-  background-color: var(--bg);
-  color: var(--fg);
-}
-
-.ticket-card header div {
-  padding: 0.5em;
-  padding-inline: 1em;
-}
-
-.ticket-card main {
-  display: flex;
-  flex-direction: column;
-}
-
-.ticket-card main .top-box {
-  padding: 1em;
-}
-
 .expiry {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 1em;
 }
 
 .expiry p {
   background-color: rgb(212, 249, 212);
-  font-weight: 500;
+  font-weight: 700;
   color: rgb(18, 78, 18);
 
   border-radius: 0.5em;
-  padding: 0.5em;
+
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+
   text-align: center;
-  width: 80%;
   line-height: 1em;
+  width: 100%;
 }
 
-.statistics {
+.ticket-card > footer {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 1em;
   padding-bottom: 1em;
 }
 
-.statistics > div {
-  width: 85%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: baseline;
+.ticket-card > footer > div {
+  margin-top: 1em;
+  margin-left: 1em;
+  margin-right: 1em;
 }
 
-.statistics button {
-  color: white;
-  background-color: var(--bg);
-  border: none;
-  border-radius: 0.5em;
-  width: 2em;
-  padding: 0.2em;
+.statistics {
   text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  margin: 4px 2px;
-  cursor: pointer;
-}
-
-.statistics button:hover {
-  background-color: var(--bg-dark);
-  opacity: 1.0;
 }
 
 .ticket-card .progress-bar {
@@ -179,7 +230,7 @@ button:hover {
   border-radius: 0.2em;
   width: 85%;
   height: 0.4em;
-  background: var(--bg);
+  background: var(--accent);
   animation: countdown 10s linear forwards;
 
   animation-play-state: paused;
@@ -189,13 +240,17 @@ button:hover {
 }
 
 @keyframes countdown {
-  from { width: 85%; }
-  to { width: 0%; }
+  from {
+    width: 85%;
+  }
+  to {
+    width: 0%;
+  }
 }
 
 .moving-bee {
   padding-top: 2em;
-  padding-bottom: 1em;
+  padding-bottom: 2em;
 }
 
 .bee-container {
@@ -205,15 +260,16 @@ button:hover {
 
 .bee {
   position: relative;
-  top: 50%;
+  /* top: 50%; */
 
   background-image: url(bee.svg);
   background-size: contain;
   background-repeat: no-repeat;
-  width: 40px;
-  height: 40px;
-
-  animation: movebee 2s cubic-bezier(0.500, 0.000, 0.500, 1.000) infinite alternate;
+  width: 80px;
+  height: 80px;
+  
+  transform-origin: center;
+  animation: movebee 2s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate;
 }
 
 @keyframes movebee {
@@ -226,7 +282,7 @@ button:hover {
   }
 }
 
-input[type=text] {
+input[type="text"] {
   width: 100%;
   padding: 12px 20px;
   margin: 8px 0;
@@ -241,8 +297,8 @@ select {
   background-color: #f1f1f1;
 }
 
-input[type=submit] {
-  background-color: var(--bg);
+input[type="submit"] {
+  background-color: var(--accent);
   font-weight: bold;
   border: none;
   border-radius: 0.5em;
@@ -253,6 +309,6 @@ input[type=submit] {
   cursor: pointer;
 }
 
-input[type=submit]:hover {
-  background-color: --fg;
+input[type="submit"]:hover {
+  background-color: --primary;
 }

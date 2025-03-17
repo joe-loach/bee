@@ -16,41 +16,8 @@ function save_svg(event, index) {
   }
 }
 
-function try_load_svg(event, index) {
-  if (storageAvailable("localStorage")) {
-    const qrCode = localStorage.getItem(qrCodeStorage(index));
-    if (qrCode === null) {
-      return;
-    }
-    if (!event.detail.target.hasChildNodes()) {
-      // set the HTML directly instead of fetching
-      event.detail.target.innerHTML = qrCode;
-    }
-    event.preventDefault();
-  }
-}
-
-function show_for_time(qr_id, timer_id, inc_id) {
-  const timer = document.getElementById(timer_id);
-  // start the timer animation
-  timer.style.animationPlayState = "running";
-
-  const TIME_TO_RESET = 10 * 1000; /* 10 seconds */
-  setTimeout(() => {
-    function reset_animation() {
-      timer.style.animation = "none";
-      timer.offsetHeight; /* trigger reflow */
-      timer.style.animation = "";
-    }
-    reset_animation();
-
-    // remove qr code svg
-    const qr = document.getElementById(qr_id);
-    if (qr.firstChild != null)
-      qr.firstChild.remove();
-    // increment counter
-    htmx.trigger(`#${inc_id}`, "increment", {});
-  }, TIME_TO_RESET);
+function increment(id) {
+  fetch(`tickets/${id}/inc`, { method: "POST" });
 }
 
 function clearLocalStorage() {

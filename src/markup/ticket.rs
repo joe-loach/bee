@@ -1,13 +1,14 @@
 use maud::{html, Markup};
+use time::UtcDateTime;
 
 use crate::models::ticket::{Ticket, TicketDef};
 
 pub fn ticket_area(owned_tickets: &[Ticket]) -> Markup {
     html! {
         {
-            .ticket-area {
-                @for (idx, ticket) in owned_tickets.iter().enumerate() {
-                    (ticket_card(ticket, idx))
+            #ticket-area {
+                @for ticket in owned_tickets.iter() {
+                    (ticket_card(TicketMarkup::Small { ticket }))
                 }
             }
         }
@@ -44,25 +45,84 @@ pub fn ticket_form(owned_tickets: &[Ticket], defs: &[TicketDef]) -> Option<Marku
     }
 }
 
-pub fn ticket_card(ticket: &Ticket, index: usize) -> Markup {
-    let expiry_format = time::macros::format_description!(
-        "[day padding:none] [month repr:long] [year] at [hour repr:12]:[minute][period case:lower]"
-    );
+pub enum TicketMarkup<'t> {
+    Large { ticket: &'t Ticket },
+    Small { ticket: &'t Ticket },
+}
+
+pub fn ticket_card(markup: TicketMarkup) -> Markup {
+    match markup {
+        TicketMarkup::Large { ticket } => large(ticket),
+        TicketMarkup::Small { ticket } => small(ticket),
+    }
+}
+
+fn large(ticket: &Ticket) -> Markup {
+    let ticket_qr = format!("/qr?ticket={}", ticket.id);
+    let increment = format!("increment({})", ticket.id);
 
     html! {
-        @let query = format!("?ticket={}", ticket.id);
+        @let save_svg = format!("save_svg(event, {})", 1);
 
-        @let qr = format!("qr_{}", index);
-        @let timer = format!("timer_{index}");
+        .large-ticket {
+            header {
+                h3 { "Your Ticket"}
+                button .close-button hx-get="/tickets" hx-target="#tickets" hx-on::before-send=(increment) { "Close" }
+            }
+            .ticket-card style="margin-top: 1em; margin-bottom: 1em" {
+                header {
+                    div {
+                        i .fa-sm .fa-solid .fa-bus-simple {}
+                        small style="padding-inline: 0.5em;" { "Bus" }
+                    }
+                    div {
+                        i .fa-sm .fa-solid .fa-user {}
+                        small style="padding-inline: 0.5em;" { "Student" }
+                    }
+                }
+                main {
+                    #qr hx-get=(ticket_qr) hx-trigger="load" hx-on::after-settle=(save_svg) {}
+                    (expiry(&ticket.expiry, true))
+                    .moving-bee {
+                        hr;
+                        .bee-container {
+                            .bee {}
+                        }
+                    }
+                    div {
+                        h3 { (ticket.title) }
+                        small .sub { "Students must show valid ID on use" }
+                        div style="line-height: 1.5" {
+                            p {
+                                i .fa-sm .fa-solid .fa-circle-check .fa-fw style="padding-right: 0.5em" {}
+                                small { "Bee Network" }
+                            }
+                            p {
+                                i .fa-sm .fa-solid .fa-lock .fa-fw style="padding-right: 0.5em" {}
+                                small { "Ticket locked to this device" }
+                            }
+                        }
+                    }
+                }
+                div style="padding-top: 1.5em" { hr; }
+                footer {
+                    div {
+                        p {
+                            i .fa-sm .fa-solid .fa-circle-info .fa-fw style="padding-right: 0.5em" {}
+                            small { "View details" }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
-        @let try_load = format!("try_load_svg(event,{index})");
-        @let save = format!("save_svg(event,{index})");
+fn small(ticket: &Ticket) -> Markup {
+    let large_ticket = format!("/tickets/{}", ticket.id);
 
-        @let inc_id = format!("inc_{}", ticket.id);
-
-        @let show_for_time = format!("show_for_time('{qr}','{timer}', '{inc_id}')");
-
-        .ticket-card {
+    html! {
+        .ticket-card hx-get=(large_ticket) hx-trigger="click" hx-target="#ticket-area" {
             header {
                 div {
                     i .fa-sm .fa-solid .fa-bus-simple {}
@@ -73,56 +133,38 @@ pub fn ticket_card(ticket: &Ticket, index: usize) -> Markup {
                     small style="padding-inline: 0.5em;" { "Student" }
                 }
             }
-
-            main hx-get={"/qr" (query)} hx-target={"#" (qr)} hx-on::before-request=(try_load) hx-on:click=(show_for_time) {
-                .top-box {
-                    h3 { (ticket.title) }
-                    small { "Bee Network Bus" }
-                }
-                .qr #(qr) hx-on::after-settle=(save) {}
+            main {
                 div {
-                    #(timer) .progress-bar {}
+                    h3 { (ticket.title) }
+                    small .sub { "Bee Network Bus" }
+                }
+                div style="width: 100%; margin-inline: 0" { hr; }
+                (expiry(&ticket.expiry, false))
+            }
+            footer {
+                .statistics {
+                    p { (ticket.usages) " Uses" }
                 }
             }
+        }
+    }
+}
 
-            footer {
-                .expiry {
-                    p {
-                        i .fa-sm .fa-solid .fa-clock style="padding-right: 1em" {}
-                        small { "Expires " (ticket.expiry.format(expiry_format).unwrap()) }
-                    }
-                }
+fn expiry(expiry: &UtcDateTime, fullscreen: bool) -> Markup {
+    let expiry = {
+        let expiry_format = time::macros::format_description!(
+            "[day padding:none] [month repr:long] [year] at [hour repr:12 padding:none]:[minute][period case:lower]"
+        );
+        expiry.format(expiry_format).unwrap()
+    };
 
-                .moving-bee {
-                    hr;
-                    .bee-container  {
-                        .bee {}
-                    }
-                }
+    let style = fullscreen.then_some("padding-top: 1em; padding-bottom: 1em;");
 
-                .statistics {
-                    @let usages = format!("usages_{}", ticket.id);
-                    @let inc_usage = format!("/tickets/{}/inc", ticket.id);
-                    @let dec_usage = format!("/tickets/{}/dec", ticket.id);
-
-                    div {
-                        button
-                            #(inc_id)
-                            .increment
-                            hx-post=(inc_usage)
-                            hx-target={"#" (usages)}
-                            hx-trigger="click, increment"
-                        {
-                            i .fa-solid .fa-plus {}
-                        }
-                        div {
-                            p #(usages) { (ticket.usages) }
-                        }
-                        button .decrement hx-post=(dec_usage) hx-target={"#" (usages)} {
-                            i .fa-solid .fa-minus {}
-                        }
-                    }
-                }
+    html! {
+        .expiry {
+            p style=[style] {
+                i .fa-sm .fa-solid .fa-clock style="padding-right: 1em" {}
+                small { "Expires " (expiry) }
             }
         }
     }
