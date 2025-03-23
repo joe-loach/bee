@@ -1,4 +1,5 @@
 mod ticket;
+mod landing;
 
 pub use ticket::*;
 
@@ -13,6 +14,8 @@ pub fn root(user: Option<User>) -> Markup {
         #main-content {
             @if user.is_some() {
                 #tickets hx-get="/tickets" hx-trigger="load" { "Loading..." }
+            } @else {
+                (landing::landing())
             }
         }
     }
