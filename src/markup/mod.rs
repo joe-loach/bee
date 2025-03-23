@@ -47,22 +47,37 @@ pub fn user_header(user: Option<&User>) -> Markup {
     match user {
         Some(user) => html! {
             header {
-                div {
-                    h3 {
-                        "Logged in as "
-                        a .username { (user.username) }
+                .tabs {
+                    .logo hx-get="/" hx-target="body" hx-trigger="click" {
+                        img src="/bee.svg" {}
                     }
-                }
-
-                div {
-                    button hx-get="/tickets/add" hx-target="body" { "Add Ticket" }
-                    button hx-get="/auth/logout" hx-target="body" { "Logout" }
+                    div {
+                        h3 {
+                            "Logged in as "
+                            a .username { (user.username) }
+                        }
+                    }
+                    .spaced {
+                        a hx-get="/tickets/add" hx-target="body" { "Add Ticket" }
+                        a hx-get="/auth/logout" hx-target="body" { "Logout" }
+                    }
                 }
             }
         },
         None => html! {
-            button hx-get="/auth/login" hx-target="#main-content" { "Login" }
-            button hx-get="/auth/register" hx-target="#main-content" { "Register" }
+            header {
+                .tabs {
+                    .logo hx-get="/" hx-target="body" hx-trigger="click" {
+                        img src="/bee.svg" {}
+                    }
+                    .title {
+                        h2 { "Bee Network Tracker" }
+                    }
+                    div {
+                        a hx-get="/auth/login" hx-target="#main-content" { "Login" }
+                    }
+                }
+            }
         },
     }
 }
