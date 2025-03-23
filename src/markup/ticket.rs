@@ -1,5 +1,5 @@
 use maud::{html, Markup};
-use time::UtcDateTime;
+use time::{PrimitiveDateTime, UtcDateTime};
 
 use crate::models::ticket::{Ticket, TicketDef};
 
@@ -152,12 +152,25 @@ fn small(ticket: &Ticket) -> Markup {
     }
 }
 
-fn expiry(expiry: &UtcDateTime, fullscreen: bool) -> Markup {
+fn expiry(expiry: &PrimitiveDateTime, fullscreen: bool) -> Markup {
     let expiry = {
-        let expiry_format = time::macros::format_description!(
-            "[day padding:none] [month repr:long] [year] at [hour repr:12 padding:none]:[minute][period case:lower]"
-        );
-        expiry.format(expiry_format).unwrap()
+        let now: time::PrimitiveDateTime = unsafe { core::mem::transmute(UtcDateTime::now()) };
+        let two_weeks_prior = *expiry - time::Duration::weeks(2);
+        
+        if now >= *expiry {
+            "Expired".to_owned()
+        } else if now >= two_weeks_prior {
+            // choose the correct formatting based off the duration between them
+            let difference = *expiry - now;
+            let days_left = difference.whole_days();
+            let hours_left = difference.whole_hours() - (24 * days_left);
+            format!("Expires in {} days {} hrs", days_left, hours_left)
+        } else {
+            let expiry_format = time::macros::format_description!(
+                "Expires [day padding:none] [month repr:long] [year] at [hour repr:12 padding:none]:[minute][period case:lower]"
+            );
+            expiry.format(expiry_format).unwrap()
+        }
     };
 
     let style = fullscreen.then_some("padding-top: 1em; padding-bottom: 1em;");
@@ -166,7 +179,7 @@ fn expiry(expiry: &UtcDateTime, fullscreen: bool) -> Markup {
         .expiry {
             p style=[style] {
                 i .fa-sm .fa-solid .fa-clock style="padding-right: 1em" {}
-                small { "Expires " (expiry) }
+                small { (expiry) }
             }
         }
     }
