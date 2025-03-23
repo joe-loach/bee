@@ -86,7 +86,9 @@ fn large(ticket: &Ticket) -> Markup {
                     .moving-bee {
                         hr;
                         .bee-container {
-                            .bee {}
+                            .hex {
+                                .bee {}
+                            }
                         }
                     }
                     div {
