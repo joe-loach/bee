@@ -3,11 +3,13 @@
 }
 
 :root {
-  --bg: #f8f8f8;
+  --bg: rgb(238, 239, 240);
   --bg-light: #fefefe;
+  --black: black;
   --accent: rgb(44, 49, 53);
   --accent-dark: rgb(39, 41, 44);
   --primary: #ffdc44;
+  --primary-dark: #ffc800;
 
   --text-color: black;
   --text-color-alt: rgb(70, 70, 70);
@@ -37,22 +39,54 @@ small.sub {
   color: var(--text-color-alt);
 }
 
+a {
+  color: var(--text-color);
+  text-decoration: underline var(--black);
+  cursor: pointer;
+}
+
+a:visited {
+  color: var(--text-color);
+}
+
 hr {
   color: var(--hr-color);
 }
 
 body > header {
+  background-color: var(--primary);
+
+  border-bottom: 1px solid var(--primary-dark);
+}
+
+body > header > .tabs {
   width: fit-content;
-  min-width: var(--card-min-width);
 
   margin: auto;
-  padding: 0.5em;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  padding-left: 2em;
+  padding-right: 2em;
 
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 2em;
+}
+
+.tabs > .logo {
+  cursor: pointer;
+}
+
+@media screen and (max-width: 600px) {
+  .tabs > .title {
+    display: none;
+  }
+}
+
+.spaced > * {
+  margin-inline: 0.5em;
 }
 
 button {
@@ -60,8 +94,8 @@ button {
   border-radius: 0.5em;
   display: inline-block;
 
-  padding: 0.5em;
-  margin: 4px 2px;
+  padding: 0.75em 1em 0.75em 1em;
+  margin: 8px 4px;
 
   background-color: var(--accent);
   color: white;
@@ -74,7 +108,26 @@ button:hover {
 }
 
 .username {
-  text-decoration: underline var(--primary);
+  text-decoration: underline var(--black);
+}
+
+div#landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+  background-color: var(--primary);
+}
+
+div#landing > .heading {
+  margin-top: 4em;
+  margin-bottom: 4em;
+
+  padding-inline: 2em;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
 }
 
 div#ticket-area {
@@ -259,15 +312,22 @@ div#ticket-area {
 }
 
 .bee {
-  position: relative;
-  /* top: 50%; */
-
   background-image: url(bee.svg);
+
   background-size: contain;
   background-repeat: no-repeat;
+  height: 87.2px;
   width: 80px;
-  height: 80px;
-  
+}
+
+.hex {
+  background-image: url(hex.svg);
+
+  background-size: contain;
+  background-repeat: no-repeat;
+  height: 87.2px;
+  width: 80px;
+
   transform-origin: center;
   animation: movebee 2s cubic-bezier(0.5, 0, 0.5, 1) infinite alternate;
 }
