@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use time::UtcDateTime;
+use time::PrimitiveDateTime;
 
 use crate::{database, models::user::UserId};
 
@@ -47,8 +47,8 @@ pub struct Ticket {
     pub def: DefId,
     pub title: String,
     pub price: u64,
-    pub start: UtcDateTime,
-    pub expiry: UtcDateTime,
+    pub start: PrimitiveDateTime,
+    pub expiry: PrimitiveDateTime,
     pub qr: String,
     pub usages: u32,
 }
@@ -60,13 +60,13 @@ impl Ticket {
             "used the wrong definition to create ticket"
         );
 
-        let start_time = UtcDateTime::parse(
+        let start_time = PrimitiveDateTime::parse(
             &def.start,
             &time::format_description::well_known::Iso8601::DEFAULT,
         )
         .expect("start should be in the correct format in DB");
 
-        let expiry_time = UtcDateTime::parse(
+        let expiry_time = PrimitiveDateTime::parse(
             &def.expiry,
             &time::format_description::well_known::Iso8601::DEFAULT,
         )
