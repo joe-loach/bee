@@ -1,16 +1,13 @@
 mod auth;
 mod database;
 mod markup;
+mod models;
 mod routes;
 mod sessions;
-mod models;
 
 use axum::{middleware, routing::get, Extension, Router};
 use database::{database, DatabaseConn};
 use tower_service::Service;
-
-// QR DATA
-// 7,1,47,128c93669b5c42689b8f7910080cebd1,,BN0H,1c5b64fd,1cae1b74,,2EC,,Qr1Ra0oT2BUhDslop1nztmE3egBrCDErGayXUFQzry0syePxMuPICAdreP8jJdtzQYttRG72qi1hwv0QO2v+N6fWqvVo/7W4d3Gq8f//qhL/aqfw5U5iY4OvowzH9XM0I30DDALdcVWxcFMMK0/DhYoVkz1fXOMvLwbTNhD3fp88bVjUS9L+M7e6iMwl6sxMYT+mlBNJyJ8r14+bzEuR651KfUkDxr5SAOfyoUfE4Lg5eQADydVLzUyAI5MygNwORi7MZI+BJklZZaP2g2lrhYZ1sCENIAAWljJ7OftwxXVPvAxBCxQTlGJ8eM0yXRfNZuZV5yl/PEjPHN95kcIL6w==
 
 #[derive(Clone)]
 struct State {

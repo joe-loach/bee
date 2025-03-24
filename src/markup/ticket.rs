@@ -156,7 +156,7 @@ fn expiry(expiry: &PrimitiveDateTime, fullscreen: bool) -> Markup {
     let expiry = {
         let now: time::PrimitiveDateTime = unsafe { core::mem::transmute(UtcDateTime::now()) };
         let two_weeks_prior = *expiry - time::Duration::weeks(2);
-        
+
         if now >= *expiry {
             "Expired".to_owned()
         } else if now >= two_weeks_prior {

@@ -1,5 +1,5 @@
-mod ticket;
 mod landing;
+mod ticket;
 
 pub use ticket::*;
 

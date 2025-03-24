@@ -31,10 +31,10 @@ async fn login_form() -> Markup {
             form hx-post="/auth/login" hx-target="body" {
                 label for="username" {"Username: "}
                 input name="username" type="text";
-                
+
                 label for="password" {"Password: "}
                 input name="password" type="text";
-                
+
                 input type="submit" value="Login";
             }
         }
@@ -47,10 +47,10 @@ async fn register_form() -> Markup {
             form hx-post="/auth/register" hx-target="body" {
                 label for="username" {"Username: "}
                 input name="username" type="text";
-                
+
                 label for="password" {"Password: "}
                 input name="password" type="text";
-                
+
                 input type="submit" value="Register";
             }
         }

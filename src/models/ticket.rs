@@ -148,11 +148,7 @@ impl database::Query for Insert {
     }
 
     fn bindings(&self) -> Vec<database::Binding> {
-        vec![
-            self.user.into(),
-            self.def.into(),
-            self.qr.as_str().into(),
-        ]
+        vec![self.user.into(), self.def.into(), self.qr.as_str().into()]
     }
 }
 
