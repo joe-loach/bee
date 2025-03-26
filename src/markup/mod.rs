@@ -58,7 +58,7 @@ pub fn user_header(user: Option<&User>) -> Markup {
                         }
                     }
                     .spaced {
-                        a hx-get="/tickets/add" hx-target="body" { "Add Ticket" }
+                        a hx-get="/tickets/add" hx-target="#main-content" { "Add Ticket" }
                         a hx-get="/auth/logout" hx-target="body" { "Logout" }
                     }
                 }
